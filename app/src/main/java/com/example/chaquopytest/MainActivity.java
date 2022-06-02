@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
+//import android.widget.TextView;
 
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
@@ -24,15 +24,16 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayAdapter<String> arrayAdapter_copies;
 
-    TextView textView;
+//    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding= ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot);
+        binding=ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        textView = (TextView) findViewById(R.id.textview);
+
+//        textView = (TextView) findViewById(R.id.textview);
 
         if (!Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         PyObject pyObj = py.getModule("spot_counter");
         PyObject res = pyObj.callAttr("main");
-        textView.setText(res.toString());
+//        textView.setText(res.toString());
 
         load_data();
 
@@ -74,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
         binding.spnCopies.setAdapter(arrayAdapter_copies);
 
         arrayList_drawables=new ArrayList<>();
-        arrayList_drawables.add(R.drawable.XXX);
-        arrayList_drawables.add(R.drawable.C);
-        arrayList_drawables.add(R.drawable.CCC);
-        arrayList_drawables.add(R.drawable.M);
-        arrayList_drawables.add(R.drawable.MMM);
-        arrayList_drawables.add(R.drawable.Xbar);
-        arrayList_drawables.add(R.drawable.thrXbar);
-        arrayList_drawables.add(R.drawable.CCCCC);
+        arrayList_drawables.add(R.drawable.a1);
+        arrayList_drawables.add(R.drawable.a2);
+        arrayList_drawables.add(R.drawable.a3);
+        arrayList_drawables.add(R.drawable.a4);
+        arrayList_drawables.add(R.drawable.a5);
+        arrayList_drawables.add(R.drawable.a6);
+        arrayList_drawables.add(R.drawable.a7);
+        arrayList_drawables.add(R.drawable.a8);
     }
 }

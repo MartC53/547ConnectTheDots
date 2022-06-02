@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ChaquopyTest.iml" filepath="$PROJECT_DIR$/.idea/modules/ChaquopyTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaquopyTest.app.unitTest.iml" />
+    </modules>
+  </component>
+</project>
