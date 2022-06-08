@@ -1,4 +1,4 @@
-# Connect the Dots ![Test status](https://github.com/MartC53/QIAML/actions/workflows/python-package-conda.yml/badge.svg)
+# Connect the Dots ![Test status](https://github.com/MartC53/547ConnectTheDots/actions/workflows/python-package-conda.yml/badge.svg)
 The goal of this project is to produce a model that accurately quantifies fluorescent images showing DNA amplification to known starting concentrations. Previous work in the Posner Research group has shown that these fluorescent reactions cause nucleation sites which correlate to the initial DNA concentration.
 
 Note: The previous QIAML repo has been switched to private and reverted to status before 547 in order to maintain the past CNN model structure and weights for future few shot or adaptive learning models.
