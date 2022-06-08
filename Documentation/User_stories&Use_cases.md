@@ -41,11 +41,10 @@ Provides sample and then receives results in further versions will be the only u
 
 ## GUI- Interaction
 - Return classification
-- *Future interactions* 
-  - Return Number / Compared to standard
-     - Graph of counts, visual display of counts on standard curve
-     - Output to show accuracy of each image with error bar
-   - Kivy app integration 
+- Return Number
+   - Graph of counts, visual display of counts on standard curve
+   - Output to show accuracy of each image with error bar *not implemented yet*
+   - Android app integration 
    
 ## Components 
 
@@ -63,23 +62,30 @@ Inputs: Named dataset created in ```import_data```<br />
 Outputs: NumPy arrays or Pandas dataframes preprocessed and ready for the ML model<br />
 Interactions: User calls ```get_data``` function at a script level. Ideally would automatically follow ```import_data``` in a GUI interface.
 
-```finalcnn/```
+```dicts_train_input.csv```
 
-What it does: Classification of input image data to classify the image to belonging to high, medium, or low initial input copies. The model is pre-trained on data from ```final_cnn.py```.<br />
-Inputs: Together with ```model.py``` and ```streamlit_app.py``` takes a jpg image and makes a classification prediction.<br /> 
+What it does: Serves as a reference to which images were used for training for users who want to make their own .pkl file.<br />
+Inputs: none-reference material <br />
+Outputs: none-reference material <br />
+Interactions: Use reference to ensure the correct images are in training, all other images should be in the testing split..
+
+```model.pkl```
+
+What it does: Saved scipy decision tree model. The model is pre-trained on data from ```decision_tree_trainer.py```.<br />
+Inputs: Together with ```starting_copies_prediction.py``` and ```streamlit_app.py``` takes a tiff image and makes a classification prediction.<br /> 
 Outputs: Capability to make a classification prediction.<br />
-Interactions: *Future use case* User would select their own data to produce a new model. 
+Interactions: *Future use case* User copies to android app or used for streamlit app. 
 
-```final_cnn.py```
+```starting_copies_prediction.py```
 
-What it does: applies a simple five-layer sequential convolutional neural network containing 2D convolution layers, flattening layers, and hidden neuron layers to input data. This script defines the model, complies the model, fits the model, and saves the model.<br />
-Inputs: Image data is read in with ```Dataset_from_directory``` and converted into a tensor.<br />
-Outputs: model summary as a .txt file and a saved model in a new directory named after the defined group in line 5.<br />
-Interactions: User downloads model and places in parent directory of repo to utilize website.
+What it does: Reads in the ```model.pkl``` file along with an image supplied as a path to make a prediction to the starting copy number.<br />
+Inputs: Image data is read in and converted into a matrix. Pickle file is also read in with stored model weights.<br />
+Outputs: model priction as a string.<br />
+Interactions: called in the android app and streamlit app.
 
 ```environment.yml```
 
-What it is: This is the conda environment used to produce the TensorFlow model and run the streamlit GUI.<br />
+What it is: This is the conda environment used to produce the decision tree model and run the streamlit GUI.<br />
 Inputs: none. <br />
 Outputs: Conda environment capable of using the scripts in the repo.<br />
 Interactions: User creates working environment with ```conda env create -f environment.yml```
