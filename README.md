@@ -1,21 +1,41 @@
-# QIAML ![Test status](https://github.com/MartC53/QIAML/actions/workflows/python-package-conda.yml/badge.svg)
-The goal of this project is to produce a model that accurately detects quantifies fluorescent nucleation sites of DNA amplification. Previous work in the Posner Research group has shown that these fluorescent nucleation sites correlate with the concentration of initial DNA concentration.
+# Connect the Dots ![Test status](https://github.com/MartC53/QIAML/actions/workflows/python-package-conda.yml/badge.svg)
+The goal of this project is to produce a model that accurately quantifies fluorescent images showing DNA amplification to known starting concentrations. Previous work in the Posner Research group has shown that these fluorescent reactions cause nucleation sites which correlate to the initial DNA concentration.
+Note: The previous QIAML repo has been switched to private and reverted to status before 547 in order to maintain the past CNN model structure and weights for future few shot or adaptive learning models.
 
 ## Current Functionality:
-- [x] Proof of concept
-  - [x] Pre-process image by filter separation, auto-cropping, resizing, and pixel normalization 
-  - [x] Load preprocessed image into Tensorflow tensor
-  - [x] Produce CNN for image classification:
-    - [x] Train model for image classification
-    - [x] Sequential model
-    - [x] 2D convolution
-    - [x] Compile model
-    - [x] Save and load model 
-  - [x] Make predictions based on input pictures
-    - [x] Visualize predictions and image on GUI
-- [ ] Regressor model
-  -  [ ] Investigate One-shot/few-shot models 
-  -  [ ] Use time resolved data 
+- [x] Last quarter (545/546)
+  - [x] Proof of concept
+    - [x] Pre-process image by filter separation, auto-cropping, resizing, and pixel normalization 
+    - [x] Load preprocessed image into Tensorflow tensor
+    - [x] Produce CNN for image classification:
+      - [x] Train model for image classification
+      - [x] Sequential model
+      - [x] 2D convolution
+      - [x] Compile model
+      - [x] Save and load model 
+    - [x] Make predictions based on input pictures
+      - [x] Visualize predictions and image on GUI
+- [x] This quarter (547)
+  - [x] Use time resolved data  
+  - [x] Evaluate other model types
+      - [x] Few Shot learning- Still dataset limited train on 1 test on 2 gives poor stats
+      - [x] Adaptive fast learning - Still dataset limited, see above
+      - [x] Autoecoder dataset limited- could not produce images outside of negative control
+      - [x] Decision tree regressor- model of choice for following work
+    - [x] Visualize prediction
+      - [x] Streamlit webapp
+      - [ ] Android app for edge computing
+        - [x] Front end gui completed
+        - [x] Back end model wrapped with Chaquopy
+        - [ ] Integration of phone camera with analysis 
+        - [ ] Integration of front and back end     
+- [ ] Future work 
+  - [ ] Further evaluated Decision tree model when more data is available (train on one test on two)
+  - [ ] Investigate One-shot/few-shot models
+    - [ ] Utilize past model weights when more data is available
+  - [ ] Fully integrate Android app, see above   
+
+  
 
 ## Motivation
 ### Abstract
@@ -33,14 +53,11 @@ Yanzhe Zhu, Xunyi Wu, Alan Gu, Leopold Dobelle, Clément A. Cid, Jing Li, and Mi
 Environmental Science & Technology 2022 56 (2), 862-873
 DOI: 10.1021/acs.est.1c04623
 
-For more information please see [Further details in the wiki](https://github.com/MartC53/QIAML/wiki/Further-details)
-
-
 ## Methods
 ### Import Images
 Due to their size, all data set images are cropped and pre-processed using the ``auto_crop.py``. This function isolates the green fluorescent channel (the detection channel of our FAM fluorophore) applied an adaptive blurring and contrasting to the images to improve visual representation. The images are then cropped based on contours of the image, and saved as a 2D NumPy array in an .npy file. To access the images, the ``get_data.py`` file reads in the .npy and saves the data arrays as either a NumPy array or a pandas dataframe. The data available is triplicate images of the end point of the RPA reaction. To ensure the train and test splits contain all data in the range of interest (30-10,000 cp) the triplicate data is split into train and test groups. Here the data in AB,BC, or AC represent the train groups while A, B, or C are the test groups for the training sets BC, AC,AB respectively.
-### Pre CNN image processing 
-To improve model accuracy and run time the images are sized to 900x900 pixels. Additionally, the image pixel intensities are normalized on a range of [0,1] with a maximum intensity of 256 for the 8-bit camera these images were taken on.
+### Image processing 
+The time resolved data can be challenging to work with as the data is stored in .tiff stacks. The stacks are composed of a single experiment at a given input concentration but each stack contains 1,200 images- one image is taken every second for 20 minutes. Some phones and websites have issues displaying the images. Additionally, slight variation between images results in uneven distribution of pixel intensities in successive images. In order to solve these issues the .tiff stacks are read in with `tifffile` and converted into a stacked matrix. Then each image is normalized to a float64 number taking the average of the four corner pixels and background subtracted from the initial frame before the reaction begins.
 ### Model training  
 The model used is a simple sequential model  containing five layers. The first layer is a rescaling of the data to normalize 8-bit pixel intensities on the range of [0,1]. The next layer is an 8 neuron deep 2D convolution layer. 2D convolution layers have been successfully used for image classification in the past [1]. To find the optimal number of neurons, the model was iteratively run with 128, 64, 32, 16, 8, and 4 neurons. Accuracy was defined by correct identification of test data. The model failed to run above 64 neurons and accuracy losses were observed at 32 neurons. The highest accuracy was observed with 8 and 4 neurons. The model is then flattened before being past to two hidden dense layers whose neuron depths were iteratively determined as above. 
 
