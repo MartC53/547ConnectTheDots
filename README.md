@@ -1,5 +1,6 @@
 # Connect the Dots ![Test status](https://github.com/MartC53/QIAML/actions/workflows/python-package-conda.yml/badge.svg)
 The goal of this project is to produce a model that accurately quantifies fluorescent images showing DNA amplification to known starting concentrations. Previous work in the Posner Research group has shown that these fluorescent reactions cause nucleation sites which correlate to the initial DNA concentration.
+
 Note: The previous QIAML repo has been switched to private and reverted to status before 547 in order to maintain the past CNN model structure and weights for future few shot or adaptive learning models.
 
 ## Current Functionality:
@@ -18,6 +19,7 @@ Note: The previous QIAML repo has been switched to private and reverted to statu
 - [x] This quarter (547)
   - [x] Use time resolved data  
   - [x] Evaluate other model types
+      - [x] Image augmentation- Images were cut into fourths and the previous CNN was re-trained. Accuracy increased to 52%
       - [x] Few Shot learning- Still dataset limited train on 1 test on 2 gives poor stats
       - [x] Adaptive fast learning - Still dataset limited, see above
       - [x] Autoecoder dataset limited- could not produce images outside of negative control
@@ -59,48 +61,45 @@ Due to their size, all data set images are cropped and pre-processed using the `
 ### Image processing 
 The time resolved data can be challenging to work with as the data is stored in .tiff stacks. The stacks are composed of a single experiment at a given input concentration but each stack contains 1,200 images- one image is taken every second for 20 minutes. Some phones and websites have issues displaying the images. Additionally, slight variation between images results in uneven distribution of pixel intensities in successive images. In order to solve these issues the .tiff stacks are read in with `tifffile` and converted into a stacked matrix. Then each image is normalized to a float64 number taking the average of the four corner pixels and background subtracted from the initial frame before the reaction begins.
 ### Model training  
-The model used is a simple sequential model  containing five layers. The first layer is a rescaling of the data to normalize 8-bit pixel intensities on the range of [0,1]. The next layer is an 8 neuron deep 2D convolution layer. 2D convolution layers have been successfully used for image classification in the past [1]. To find the optimal number of neurons, the model was iteratively run with 128, 64, 32, 16, 8, and 4 neurons. Accuracy was defined by correct identification of test data. The model failed to run above 64 neurons and accuracy losses were observed at 32 neurons. The highest accuracy was observed with 8 and 4 neurons. The model is then flattened before being past to two hidden dense layers whose neuron depths were iteratively determined as above. 
 
-The optimizer and activation function hyper parameters used in the layers were chosen by utilizing OPTUNA [2]. An OPTUNA optimization was run for 10 epochs and 10 trials. The optimizers scanned were RSME, Adam, and SDG. The activators scanned were exponential Linear Unit, rectified linear unit activation function, linear activation function, and Scaled Exponential Linear Unit. These functions were chosen as the data should be able to be forced into a linear fashion.
-
-1. R. Chauhan, K. K. Ghanshala and R. C. Joshi, "Convolutional Neural Network (CNN) for Image Detection and Recognition," 2018 First International Conference on Secure Cyber Computing and Communication (ICSCCC), 2018, pp. 278-282, doi: 10.1109/ICSCCC.2018.8703316.
-2. Takuya Akiba, Shotaro Sano, Toshihiko Yanase, Takeru Ohta,and Masanori Koyama. 2019.
-Optuna: A Next-generation Hyperparameter Optimization Framework. In KDD.
 
 ## Application Usage
-There are a few requirements to run the current GUI. These are that the model needs to be downloaded and unzipped into your working directory. The model’s directory title should be “finalcnn”. This file can be downloaded [here](https://drive.google.com/drive/folders/1L-Yn5opjNfaOqfTedgdTPQEp0Bcc60Qi?usp=sharing), due to its size 1.1gb we are unable to upload it into our repository. The main branch should have the following directory structure:
-```
-.
-├── Datasets
-│   └── cropped_jpgs
-│       └── A
-├── Documentation
-├── finalcnn
-└── qiaml
-    ├── Datasets
-    └── tests_autocrop
-```
-Other requirements:
-  - 16gb of ram is required to load the image dataframes. 
-  - 16gb of ram is required to run the GUI.
 
-To run the GUI, users should clone our repository, activate the provided environment, and run ```streamlit run streamlit_app.py``` from the terminal. The user should follow their command line instructions to open the GUI on their internet browser. 
+### Streamlit webapp
+There are a few requirements to run the webapp GUI. These are that the model needs to be re-made or trusted and the computer to run on needed 16 gb of ram. To remake the model run the model ```decision_tree_trainer.py``` to make the ```model.pkl``` file. Make sure that the ```model.pkl``` file is in the main branch of the repo. 
+
+After remaking the ```model.pkl``` or trusting the file in the exsiting repo, to run the GUI, users should clone our repository, activate the provided environment, and run ```streamlit run streamlit_app.py``` from the terminal. The user should follow their command line instructions to open the GUI on their internet browser. 
 The model does take a long time to load.
 Once the model is loaded you can either select a file that has already been prepared by using the drop menu or import your own file. The widget will display the predicated range of the image.
 
+### Android app
+<p align="center">
+<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/AppGui.png" width="212" height="443">
+</p>
+
+To run the android app navigate to the app branch and download the code as a compressed file. Extract the file in the desired destination then open with android studio. The model is stored as a .pkl file, for your security the .pkl file is not added to the build. To add the .pkl first run the model from the main branch of the repo then or copy the file to the following directory:
+```
+.
+├── Project
+│   └── ConnecttheDots
+│       └── app
+│         └── src
+│           └── python
+│             └── model.pkl
+```
+Re-sync the gradle files and rebuild the app. The app can then be evaluated using a virtual device in the device manager or installed on an android phone that has developer mode and usb debugging enabled.
+
+The hands on demo and virtual demo were both done using a Google Pixel 4a running current android 11 API level 30.
+
 ## Current limitations
-The desired model is a regressor, however, due to a lack of data this was not possible. Using simple regression models, our validation error would increase with each epoch which would eventually kill the model. We believe the validation error continued to increase due to the limited number of validation images available, a 20% validation split is only two images. Thus, there are no 1:1 validations available. What we believe to be happening is that images of one input copy number (ie 100 copies) was being validated against a different (1,000 copies) or no image whatsoever. 
+The desired model is a regressor, however, due to a lack of data available this was not possible. Using simple regression models, our validation error would increase with each epoch which would eventually kill the model. We believe the validation error continued to increase due to the limited number of validation images available, a 20% validation split is only two images. Thus, there are no 1:1 validations available. What we believe to be happening is that images of one input copy number (ie 100 copies) was being validated against a different (1,000 copies) or no image whatsoever. 
 
-To remedy this, we split the data into three classifications: High input copies of 3,000 and 10,000, Medium input copies of 300 and 1,000, and low input copies of 30 and 100 copies. By doing this we essentially double our number of training images- which are then split with a 50% validation split to allow there to be a 1:1 image validation.
-
-Another issue with the current limited image library is that the testing and validation images are of the same initial input copy number as those of the test set, Meaning, the training, validation, and testing data all contain images of the same dilution factor. In the future, this model can be improved by utilizing validation and testing images of a different dilution factor as to thoroughly test the model on input copies dilutions not previously seen.
+Last quarter we investigated a CNN that achieved 40% accuracy by classifying images into three categories. This model was fundamentally flawed as it predicted all images were of the "low" category. The accuracy was due to the fact that 40% of the images belonged to the low category. Early this quarter we evaluated image augmentation were each image was split into fourths. We then also applied a random 90 degree rotation to the split images to increase our datasets by 8x. The image splitting was somewhat successful as it saw an increase in accuracy to 52%. The image splitting and rotation yield no gain in accuracy.
 
 ### Confusion Matrix
-|    |      Predicted Low      |  Predicted Medium | Predicted High |
-|----------|:-------------:|------:|------:|
-| True Low |  2 | 0 | 0 |
-| True Medium |   2   |  0 | 0 |
-| True High | 3 |  0  | 0 |
+<p align="center">
+<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/ConfusionMatrix.png" width="400" height="390">
+</p>
 
 The current published model always predicts the low classification. During the process of selecting a model, we noticed models created with the same script would always classify a single (different) class. We believe this occurs due to the validation split. When defining the split, we did not provide a directory containing all the images in the desired dilution range, this combined with the lack of a constant seed, results in a random assignment of 14 images in which multiple images from the same class are used for the validation split. This can be remedied by manually making a directory of images to use for validation.
 
