@@ -121,28 +121,28 @@ def get_data_df(Dataset):
         print('Error: Datasets limited to A, B, C, AB, AC, BC')
 
 
-def get_data_tf_dataset(train, test):
-    """
+# def get_data_tf_dataset(train, test):
+#     """
 
-    Parameters
-    ----------
-    train : str. Which dataset desired: AB,AC,BC
+#     Parameters
+#     ----------
+#     train : str. Which dataset desired: AB,AC,BC
 
-    test : str. corrisponding testdata: A,B,C 
+#     test : str. corrisponding testdata: A,B,C 
 
-    Returns
-    -------
-    train_ds : tensorflow dataset for training. 
-    pred_ds : tensorflow dataset for testing/predicting.
-    Error: you need to download the data
+#     Returns
+#     -------
+#     train_ds : tensorflow dataset for training. 
+#     pred_ds : tensorflow dataset for testing/predicting.
+#     Error: you need to download the data
 
-    """
-    if os.path.exists('./Datasets/cropped_jpgs') == True:
-        data_dir = './Datasets/cropped_jpgs/{train}'
-        predict_dir = './Datasets/cropped_jpgs/{test}'
-        Dataset_from_directory(data_dir, predict_dir)
-    else:
-        print('Error: Download the files from the shared drive link and store them in ./Datasets/cropped_jpgs')
+#     """
+#     if os.path.exists('./Datasets/cropped_jpgs') == True:
+#         data_dir = './Datasets/cropped_jpgs/{train}'
+#         predict_dir = './Datasets/cropped_jpgs/{test}'
+#         Dataset_from_directory(data_dir, predict_dir)
+#     else:
+#         print('Error: Download the files from the shared drive link and store them in ./Datasets/cropped_jpgs')
 
 
 # def Dataset_from_directory(data_dir, predict_dir, split):
