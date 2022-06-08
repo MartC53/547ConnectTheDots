@@ -13,7 +13,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from tensorflow.keras.utils import image_dataset_from_directory
+# from tensorflow.keras.utils import image_dataset_from_directory
 import os
 
 
@@ -145,7 +145,7 @@ def get_data_tf_dataset(train, test):
         print('Error: Download the files from the shared drive link and store them in ./Datasets/cropped_jpgs')
 
 
-def Dataset_from_directory(data_dir, predict_dir, split):
+# def Dataset_from_directory(data_dir, predict_dir, split):
     """
 
     Parameters
@@ -163,22 +163,22 @@ def Dataset_from_directory(data_dir, predict_dir, split):
 
     """
 
-    train_ds = image_dataset_from_directory(
-        data_dir,
-        seed=53,
-        image_size=(900, 900))
+    # train_ds = image_dataset_from_directory(
+    #     data_dir,
+    #     seed=53,
+    #     image_size=(900, 900))
 
-    val_ds = image_dataset_from_directory(
-        data_dir,
-        validation_split=split,
-        subset="validation",
-        seed=53,
-        image_size=(900, 900))
+    # val_ds = image_dataset_from_directory(
+    #     data_dir,
+    #     validation_split=split,
+    #     subset="validation",
+    #     seed=53,
+    #     image_size=(900, 900))
 
-    pred_ds = image_dataset_from_directory(
-        predict_dir,
-        seed=53,
-        image_size=(900, 900))
+    # pred_ds = image_dataset_from_directory(
+    #     predict_dir,
+    #     seed=53,
+    #     image_size=(900, 900))
 
-    return train_ds, val_ds, pred_ds
+    # return train_ds, val_ds, pred_ds
 
