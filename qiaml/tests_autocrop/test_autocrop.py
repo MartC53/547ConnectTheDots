@@ -12,7 +12,7 @@ from qiaml.get_data import get_data_array
 This test file tests the TestCrop function and get_data_array function. Please run it under QIAML/qiaml folder.
 """
 
-#class TestCrop(unittest.TestCase):
+class TestCrop(unittest.TestCase):
  #   def test_smoke(self):
   #      crop('test_image2.jpg')
    #     return
