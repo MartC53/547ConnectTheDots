@@ -4,219 +4,116 @@ Contains several functions which are useful for counting the number of spots in
 a photo and predicting the number of dna copies these spots represent.
 """
 
-from autocrop import crop
-import cv2 as cv2
+#from qiaml import decision_tree_trainer
+import pandas as pd
 import numpy as np
-import os
+import pickle
+import tifffile as tiff
+import scipy.stats as stats
+from scipy.signal import savgol_filter
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_squared_error, accuracy_score
+
+def prediction(testpath):
+    all_para = ['image ID','Average Value','maximum','stdev','arr_median','skew_ar','kurto','kurto_deriv']
+    xpara = ['stdev','skew_ar','kurto']
+    ypara = 'image ID'
+    with open('model.pkl', 'rb') as f:
+        models = pickle.load(f)
+    keys = [30, 100, 300, 1000, 3000, 10000, 30000, 100000]
+    #models,xpara,ypara,all_para,keys = decision_tree_trainer.get_models()
+    for ncps in models:
+        print(models[ncps])
+
+    testinput = tif_to_mat(testpath)
+    df = pd.DataFrame(testinput, columns = all_para)
+    test_df = df
+    R2ar = []
+    for ncps in models:
+        R2ar.append(modeltest(models[ncps],test_df,xpara,ypara)[1])
+    predicted_cps = keys[np.argmax(R2ar)]
+    return print('The starting N copies should be',predicted_cps)
 
 
-def increase_contrast(img):
+def tif_to_mat(tiffpath):
     """
-    Returns a more contrasted version of img. This constrast is applied mainly
-    through first erosion then contrast limited adaptive histogram
-    equalization.
-    Returns:
-    - contrasted_img: contrasted version of img
+    Define a tif_to_mat function to get all statistical interpretations from the tiff file.
+    All statistical interpretations are 'image ID','Average Value','maximum','stdev','arr_median','skew_ar','kurto','kurto_deriv'
+
+    Returns: a matrix of interpreted information.
+
+    Parameters: Path to the tiff file.
     """
-    kernel_size = 5
-    iterations = 3
-    contrast_threshold = 1
-    grid_size = 5
-    alpha = 3  # (1.0-3.0)
-    beta = 0  # (0-100)
+    im1 = tiff.imread(tiffpath)
+    layer,xmax,ymax = im1.shape
+    array_avg = []
+    arr_max = []
+    arr_min = []
+    arr_median = []
 
-    # kernel = np.ones((kernel_size, kernel_size), np.uint8)
-    # eroded_img = cv2.erode(img, kernel, iterations=iterations)
+    skew_ar = []
+    kurto_ar = []
 
-    # CLAHE (Contrast Limited Adaptive Histogram Equalization)
-    clahe = cv2.createCLAHE(clipLimit=contrast_threshold,
-                            tileGridSize=(grid_size, grid_size))
-    clahe_img = clahe.apply(img)
+    stv_ar = []
+    harm_mean_ar = []
+    xmax = xmax - 1
+    ymax = ymax - 1
 
-    contrast = 10
-    f = 131 * (contrast + 127) / (127 * (131 - contrast))
-    alpha_c = f
-    gamma_c = 127 * (1 - f)
+    for ii in im1:
+        ii = ii.astype('float64')
 
-    buf = cv2.addWeighted(clahe_img, alpha_c, clahe_img, 0, gamma_c)
-
-    #contrasted_img = apply_contrast(clahe_img)
-    #adjusted = cv2.convertScaleAbs(clahe_img, alpha=alpha, beta=beta)
-
-    return buf
+        tl_corner = (ii[0,0])
+        br_corner = (ii[xmax,ymax])
+        bl_corner = (ii[xmax,0])
+        tr_corner = (ii[0,ymax])
 
 
-def apply_blur(img):
+        normal_param = 4/(tl_corner+br_corner+bl_corner+tr_corner)
+        ii = ii / normal_param
+
+        ii = ii - im1[0]
+
+        arr_max.append(ii.max())
+        array_avg.append(ii.mean())
+        arr_median.append(np.median(ii))
+        allstv = np.std(ii)
+        stv_ar.append(allstv)
+        #statistics.covariance
+        #harm_mean_ar.append(harm_mean(ii))
+        skew_ar.append(stats.skew(ii.reshape(-1,1))[0])
+        kurto_ar.append(stats.kurtosis(ii.reshape(-1,1))[0])
+
+    kurto_smo = savgol_filter(kurto_ar, 111, 5)
+    kurto_diff = np.append(0,np.diff(kurto_smo))
+
+
+    aindexs = np.arange(0,layer,1)
+    marrays = [aindexs,array_avg,arr_max,stv_ar,arr_median,skew_ar,kurto_ar,kurto_diff]
+    rsars = np.array(marrays)
+    newshape = rsars.transpose()
+
+    return newshape
+
+def modeltest(regr,df,xpara,ypara):
     """
-    Returns a blurred version of img using a bilateral filter.
-    Parameters:
-    - img: the image to be blurred
-    Returns:
-    - blurred_img: blurred version of img
+    Taking the regression model trained on train pool and use it for testing datasets.
+    Here is making the model based on the df inputed, xparameter and yparameter defined outside.
     """
-    diameter = 50
-    sigma_color = 50
-    sigma_space = 50
-    blurred_img = cv2.bilateralFilter(img, diameter, sigma_color, sigma_space)
-    return blurred_img
+    X = df[xpara]
+    y = df[ypara].values.reshape(-1, 1)
 
-
-def isolate_spots(img):
-    """
-    Returns a version of img with its spots isolated.
-    Parameters:
-    - img: the image to be analyzed
-    Returns:
-    - markers: the markers, or connected components of img
-    """
-    max_threshold_value = 255
-    block_threshold_size = 61
-    threshold_constant = 0
-    kernel_size = 1
-    iterations = 1
-
-    threshold_img = cv2.adaptiveThreshold(img, max_threshold_value,
-                                          cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                          cv2.THRESH_BINARY,
-                                          block_threshold_size,
-                                          threshold_constant)
-
-    kernel = np.ones((kernel_size, kernel_size), np.uint8)
-    # img_opening = cv2.morphologyEx(threshold_img, cv2.MORPH_OPEN, kernel,
-    #                               iterations=iterations)
-    diameter = 10
-    sigma_color = 200
-    sigma_space = 50
-    blurred_img = cv2.bilateralFilter(threshold_img, diameter, sigma_color, sigma_space)
-    return blurred_img
-
-
-def produce_output_image(img, circles, filepath):
-    """
-    Produces and save and an image that has img as its backgound and overlays
-    the circles specified by the circles paramater in green. Saves this image
-    at path as filepath.
-    Parameters:
-    - img: the background of the image being saved, should be an RGB image
-    - circles: the circles overlayed on the image in green, should be the
-               return of cv2.HoughCircles)
-    - filepath: the path that the resulting image is saved at
-    """
-    circles = np.uint16(np.around(circles))
-    for i in circles[0, :]:
-        # draw the outer circle
-        cv2.circle(img, (i[0], i[1]), i[2], (255, 0, 255), 2)
-        # draw the center of the circle
-        cv2.circle(img, (i[0], i[1]), 2, (0, 0, 255), 3)
-    cv2.imwrite(filepath, img)
-
-
-def number_of_spots(img_path, result_img_path=None):
-    """
-    Returns the number of spots in the img at img_path. If result_img_path is
-    specified, saves an image representating the spots found at the path
-    result_img_path. If result_img_path is not specified, does not save any
-    images.
-    Parameters:
-    - img_path: the image to be analyzed
-    - result_img_path: resutling image path, optional
-    Returns:
-    - num_spots: the number of spots in img
-    """
-    img = crop(img_path)
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    contrasted_img = increase_contrast(gray_img)
-
-    blurred_img = apply_blur(contrasted_img)
-
-    markers_img = isolate_spots(blurred_img)
-
-    dp = 0.75
-    min_dist = 40
-    param1 = 300
-    param2 = 35
-    min_radius = 20
-    max_radius = 60
-    circles = cv2.HoughCircles(markers_img, cv2.HOUGH_GRADIENT, dp=dp,
-                               minDist=min_dist, param1=param1, param2=param2,
-                               minRadius=min_radius, maxRadius=max_radius)
-
-    # There are no circles
-    if circles is None:
-        return 0
-
-    if result_img_path:
-        # kernel = np.ones((19,19),np.uint8)
-        # erosion = cv2.erode(cimg,kernel,iterations = 1)
-        # dilation = cv2.dilate(erosion,kernel,iterations = 1)
-        lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        lab_planes = cv2.split(lab)
-        contrast_threshold = 4# 2.5
-        grid_size = 11# 3
-        clahe = cv2.createCLAHE(clipLimit=contrast_threshold,
-                                tileGridSize=(grid_size, grid_size))
-        lab_planes[0] = clahe.apply(lab_planes[0])
-        lab = cv2.merge(lab_planes)
-        cimg = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-        cimg *= 2
-
-        produce_output_image(cimg, circles, result_img_path)
-
-    return len(circles[0, :])
-
-
-def number_of_dna_copies(spot_count):
-    """
-    Returns the estimated number of cDNA copies based on the given spot count
-    found using least squares polynomial regression.
-    Paramters:
-    - spot_count: number of spots used to predict cDNA copies
-    Returns:
-    - n_initial_dna: the estimated number of cDNA copies based on the given
-    spot count
-    """
-    # standard curve
-    cdna = [25, 50, 100, 500, 1000]
-    log_cdna = np.log10(cdna)
-    avg_spot_count = [2, 2.01, 6.48, 25.09, 31.33]
-
-    lin_reg_line = np.polyfit(log_cdna, avg_spot_count, 1)
-    polynomial = np.poly1d(lin_reg_line)
-
-    intercept = polynomial[0]
-    slope = polynomial[1]
-
-    # initial DNA calculations from standard curve
-    log_initial_cdna = (spot_count - intercept) / slope
-    n_initial_dna = round(10 ** log_initial_cdna)
-
-    return n_initial_dna
-
-
-def average_number_of_spots(dir_name):
-    """
-    Returns the average number of spots in the images in the directory
-    dir_name.
-    Parameters:
-    - dir_name: the directory to be analyzed. Assumes this directory is
-    populated solely with jpeg images.
-    Returns:
-    - num_spots: the average number of spots.
-    """
-
-    spot_sum = 0
-    photos = os.listdir(dir_name)
-    for photo_name in photos:
-        photo_path = os.path.join(dir_name, photo_name)
-        spot_sum += number_of_spots(photo_path)
-    avg_spot_count = spot_sum / len(photos)
-    return avg_spot_count
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.9, random_state=98, shuffle=True)
+    y_pred = regr.predict(X_test)
+    MSE = mean_squared_error(y_test, y_pred)
+    R2 = r2_score(y_test, y_pred)
+    return MSE,R2
 
 def main():
     # spot_count = number_of_spots('TestImages/300cps_R.jpg', 'test.png')
-    filename = os.path.join(os.path.dirname(__file__), '300cps_R.jpg')
+    imgs = ['imgs/300','imgs/1000','imgs/3000', 'imgs/100000',]
+    for i in range(len(imgs):
+        filename = os.path.join(os.path.dirname(__file__), imgs)
 
-    spot_count = number_of_spots(filename)
-    return "Spot Count: " + str(spot_count) + " DNA Copies: " + str(number_of_dna_copies(spot_count))
+        spot_count = number_of_spots(filename)
+        return "Spot Count: " + str(spot_count) + " DNA Copies: " + str(number_of_dna_copies(spot_count))
     #average_number_of_spots('TestImages/81 frames_1')
