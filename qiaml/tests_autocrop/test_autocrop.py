@@ -14,7 +14,7 @@ This test file tests the TestCrop function and get_data_array function. Please r
 
 class TestCrop(unittest.TestCase):
     def test_smoke(self):
-        crop('test_image.jpg')
+        crop('test_image2.jpg')
         return
     
     def test_oneshot(self):
