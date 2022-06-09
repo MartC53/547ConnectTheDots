@@ -1,7 +1,7 @@
 # Connect the Dots ![Test status](https://github.com/MartC53/547ConnectTheDots/actions/workflows/python-package-conda.yml/badge.svg)
 The goal of this project is to produce a model that accurately quantifies fluorescent images showing DNA amplification to known starting concentrations. Previous work in the Posner Research group has shown that these fluorescent reactions cause nucleation sites which correlate to the initial DNA concentration.
 
-Note: The previous QIAML repo has been switched to private and reverted to status before 547 in order to maintain the past CNN model structure and weights for future few shot or adaptive learning models.
+Note: The previous QIAML repo has been switched to private and reverted to status before 547 in order to maintain the past CNN model structure and weights for future few shot or adaptive learning models. This repo is unlisecened at the request of the stakeholder.
 
 ## Current Functionality:
 - [x] Last quarter (545/546)
@@ -61,7 +61,7 @@ Due to their size, all data set images are cropped and pre-processed using the `
 ### Image processing 
 The time resolved data can be challenging to work with as the data is stored in .tiff stacks. The stacks are composed of a single experiment at a given input concentration but each stack contains 1,200 images- one image is taken every second for 20 minutes. Some phones and websites have issues displaying the images. Additionally, slight variation between images results in uneven distribution of pixel intensities in successive images. In order to solve these issues the .tiff stacks are read in with `tifffile` and converted into a stacked matrix. Then each image is normalized to a float64 number taking the average of the four corner pixels and background subtracted from the initial frame before the reaction begins.
 ### Model training  
-
+The decision tree classifier model is actually multiple decision tree regressor. The model is set up so that a variable branch depth regressor is trained for each of the desired copy sets. The depth of the model is chosen to be the depth with the lowest mean squared error and highest  coefficient of determination. For the eight regressors, the depth range is [2-7] with the average depth being 5 branches. When making a prediction, the model runs the data through call eight models and reports the model with the highest coefficient of determination as being the starting copy type, essentially a classifier.
 
 ## Application Usage
 
@@ -74,7 +74,7 @@ Once the model is loaded you can either select a file that has already been prep
 
 ### Android app
 <p align="center">
-<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/AppGui.png" width="212" height="443">
+<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/res/AppGui.png" width="212" height="443">
 </p>
 
 To run the android app navigate to the app branch and download the code as a compressed file. Extract the file in the desired destination then open with android studio. The model is stored as a .pkl file, for your security the .pkl file is not added to the build. To add the .pkl first run the model from the main branch of the repo then or copy the file to the following directory:
@@ -98,7 +98,7 @@ Last quarter we investigated a CNN that achieved 40% accuracy by classifying ima
 
 ### Confusion Matrix
 <p align="center">
-<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/ConfusionMatrix.png" width="400" height="390">
+<img src="https://github.com/MartC53/547ConnectTheDots/blob/main/Documentation/res/ConfusionMatrix.png" width="400" height="390">
 </p>
 
 The decision tree classifier is able to accurately classify images above 300 copies (1000-10,000). In order to accurately detect at lower copy numbers the existing site counting analysis published in Sullivan *et al* 2022 will be used as it was able to quantify in the range of 30-1000 copies.
