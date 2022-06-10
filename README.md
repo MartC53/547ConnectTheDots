@@ -66,7 +66,7 @@ The decision tree classifier model is actually multiple decision tree regressor.
 ## Application Usage
 
 ### Streamlit webapp
-There are a few requirements to run the webapp GUI. These are that the model needs to be re-made or trusted and the computer to run on needed 16 gb of ram. To remake the model run the model ```decision_tree_trainer.py``` to make the ```model.pkl``` file. Make sure that the ```model.pkl``` file is in the main branch of the repo. 
+There are a few requirements to run the webapp GUI. These are that the model needs to be re-made or trusted and the computer to run on needed 16 gb of ram. To remake the model run the model ```decision_tree_trainer.py``` to make the ```model.pkl``` file. Make sure that the ```model.pkl``` file is in the main branch of the repo. Additionally, the tif resouces files are too big to store on github. Download the images [here](https://drive.google.com/drive/folders/1FL6Y1BZFBtmqvQjK20-kY_9as8l-xJ5C?usp=sharing)(google drive folder for UW access) and place these images in both ``` Datasets/All/``` and ```Datasets/streamlit_profile``` directories.
 
 After remaking the ```model.pkl``` or trusting the file in the exsiting repo, to run the GUI, users should clone our repository, activate the provided environment, and run ```streamlit run streamlit_app.py``` from the terminal. The user should follow their command line instructions to open the GUI on their internet browser. 
 The model does take a long time to load.
